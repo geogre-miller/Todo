@@ -128,12 +128,12 @@ export default function Home() {
       
       // Show success toast
       toast.success(`Todo "${newTodo.title}" created successfully`, {
-        duration: 1000,
+        duration: 3000,
       });
     } catch (err: any) {
       console.error('Error creating todo:', err);
       toast.error('Failed to create todo', { 
-        duration: 1000,
+        duration: 3000,
         description: err.response?.data?.error || err.message 
       });
       throw new Error(err.response?.data?.error || 'Failed to create todo');
@@ -150,9 +150,9 @@ export default function Home() {
       // Show success toast with different messages based on update type
       if ('completed' in updates) {
         const status = updates.completed ? 'completed' : 'reopened';
-        toast.success(`Todo marked as ${status}`, { duration: 1000 });
+        toast.success(`Todo marked as ${status}`, { duration: 3000 });
       } else {
-        toast.success(`Todo "${updatedTodo.title}" updated`, { duration: 1000 });
+        toast.success(`Todo "${updatedTodo.title}" updated`, { duration: 3000 });
       }
     } catch (err: any) {
       console.error('Error updating todo:', err);
@@ -178,7 +178,7 @@ export default function Home() {
     } catch (err: any) {
       console.error('Error deleting todo:', err);
       toast.error('Failed to delete todo', { 
-        duration: 1000,
+        duration: 3000,
         description: err.response?.data?.error || err.message 
       });
       throw new Error(err.response?.data?.error || 'Failed to delete todo');
