@@ -2,8 +2,8 @@ import axios from 'axios';
 import { Todo, TodoFormData, TodoResponse } from '@/types/todo';
 
 const API_BASE_URL = process.env.NODE_ENV === 'production'
-  ? process.env.NEXT_PUBLIC_API_URL || 'https://todo-ashy-chi.vercel.app'
-  : 'http://localhost:5000/api';
+  ? '/api'  
+  : 'http://localhost:5000/api'; 
 
 const api = axios.create({
   baseURL: API_BASE_URL,

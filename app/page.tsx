@@ -42,7 +42,7 @@ export default function Home() {
     setIsCheckingHealth(true);
     try {
       const healthUrl = process.env.NODE_ENV === 'production'
-        ? `${process.env.NEXT_PUBLIC_API_URL}/health` || 'https://todo-production-643f.up.railway.app/api/health'
+        ? `${process.env.}/health` || 'https://todo-production-643f.up.railway.app/api/health'
         : 'http://localhost:5000/api/health';
         
       const response = await fetch(healthUrl, {
