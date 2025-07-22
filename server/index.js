@@ -9,7 +9,7 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(cors({
   origin: [
-    'https://your-vercel-app-name.vercel.app', 
+    'todo-ashy-chi.vercel.app', 
     'http://localhost:3000'
   ],
   credentials: true
