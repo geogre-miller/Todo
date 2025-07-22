@@ -13,8 +13,9 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
   origin: [
     'http://localhost:3000',
+    'http://localhost:3001',
     'https://todo-ashy-chi.vercel.app',
-    'https://todo-production-643f.up.railway.app/'
+    'https://todo-production-643f.up.railway.app'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
