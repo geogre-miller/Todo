@@ -1,13 +1,9 @@
 import axios from 'axios';
 import { Todo, TodoFormData, TodoResponse } from '@/types/todo';
-import { mockTodoApi } from './mockData';
 
-const API_BASE_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:5000/api'
-  : 'api';
-
-// Use mock data instead of real API
-const USE_MOCK_DATA = false;
+const API_BASE_URL = process.env.NODE_ENV === 'production'
+  ? 'https://todo-ashy-chi.vercel.app/api'
+  : 'http://localhost:5000/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -20,7 +16,7 @@ const api = axios.create({
 // Request interceptor for logging
 api.interceptors.request.use(
   (config) => {
-    // console.log(`Making ${config.method?.toUpperCase()} request to ${config.url}`);
+    console.log(`Making ${config.method?.toUpperCase()} request to ${config.url}`);
     return config;
   },
   (error) => Promise.reject(error)
@@ -47,11 +43,6 @@ export const todoApi = {
     limit?: number;
     sortBy?: string;
   } = {}): Promise<TodoResponse> => {
-    if (USE_MOCK_DATA) {
-      return mockTodoApi.getTodos(params);
-    }
-
-    // sortBy parameter to API request
     const response = await api.get('/todos', { 
       params: {
         ...params,
@@ -63,30 +54,18 @@ export const todoApi = {
 
   // Create new todo
   createTodo: async (todoData: TodoFormData): Promise<Todo> => {
-    if (USE_MOCK_DATA) {
-      return mockTodoApi.createTodo(todoData);
-    }
-
     const response = await api.post('/todos', todoData);
     return response.data;
   },
 
   // Update todo
   updateTodo: async (id: string, todoData: Partial<TodoFormData & { completed: boolean }>): Promise<Todo> => {
-    if (USE_MOCK_DATA) {
-      return mockTodoApi.updateTodo(id, todoData);
-    }
-
     const response = await api.put(`/todos/${id}`, todoData);
     return response.data;
   },
 
   // Delete todo
   deleteTodo: async (id: string): Promise<void> => {
-    if (USE_MOCK_DATA) {
-      return mockTodoApi.deleteTodo(id);
-    }
-
     await api.delete(`/todos/${id}`);
   },
 };
