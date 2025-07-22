@@ -1,25 +1,19 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import { todoApi } from '@/lib/api';
-import { TodoForm } from '@/components/TodoForm';
-import { TodoList } from '@/components/TodoList';
-import { TodoFilters } from '@/components/TodoFilters';
-import { Card, CardContent } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription } from '@/components/ui/alert';
-import { toast } from 'sonner';
-import { 
-  CheckSquare, 
-  Plus, 
-  AlertCircle,
-  RefreshCw,
-} from 'lucide-react';
-import { Todo, TodoResponse, TodoFormData, FilterStatus } from '@/types/todo';
+import { useState, useEffect, useCallback } from "react";
+import { todoApi } from "@/lib/api";
+import { TodoForm } from "@/components/TodoForm";
+import { TodoList } from "@/components/TodoList";
+import { TodoFilters } from "@/components/TodoFilters";
+import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { toast } from "sonner";
+import { CheckSquare, Plus, AlertCircle, RefreshCw } from "lucide-react";
+import { Todo, TodoResponse, TodoFormData, FilterStatus } from "@/types/todo";
 
 export default function Home() {
-
   const [todos, setTodos] = useState<TodoResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,8 +21,8 @@ export default function Home() {
   const [isCheckingHealth, setIsCheckingHealth] = useState(false);
   const [hasInitialHealthCheck, setHasInitialHealthCheck] = useState(false);
 
-  const [search, setSearch] = useState('');
-  const [status, setStatus] = useState<FilterStatus>('all');
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState<FilterStatus>("all");
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
@@ -38,35 +32,36 @@ export default function Home() {
   // Check if server is online
   const checkServerHealth = useCallback(async () => {
     if (isCheckingHealth) return;
-    
+
     setIsCheckingHealth(true);
     try {
-       const healthUrl = process.env.NODE_ENV === 'production'
-        ? '/api/health'
-        : 'http://localhost:5000/api/health';
-        
+      const healthUrl =
+        process.env.NODE_ENV === "production"
+          ? "/api/health"
+          : "http://localhost:5000/api/health";
+
       const response = await fetch(healthUrl, {
-        method: 'GET',
+        method: "GET",
         headers: {
-          'Content-Type': 'application/json',
+          "Content-Type": "application/json",
         },
-        signal: AbortSignal.timeout(10000), 
+        signal: AbortSignal.timeout(10000),
       });
-      
+
       if (response.ok) {
         const healthData = await response.json();
         setIsServerOnline(true);
-        if (error?.includes('server') || error?.includes('fetch')) {
+        if (error?.includes("server") || error?.includes("fetch")) {
           setError(null);
         }
       } else {
         throw new Error(`Server returned ${response.status}`);
       }
     } catch (err) {
-      console.error('Server health check failed:', err);
+      console.error("Server health check failed:", err);
       setIsServerOnline(false);
-      if (!error || !error.includes('fetch')) {
-        setError('Cannot connect to server. Please check your connection.');
+      if (!error || !error.includes("fetch")) {
+        setError("Cannot connect to server. Please check your connection.");
       }
     } finally {
       setIsCheckingHealth(false);
@@ -86,19 +81,19 @@ export default function Home() {
     try {
       setIsLoading(true);
       setError(null);
-      
+
       const data = await todoApi.getTodos({
         search: search.trim(),
         status,
         page: currentPage,
         limit: itemsPerPage,
       });
-      
+
       setTodos(data);
     } catch (err: any) {
-      console.error('Error fetching todos:', err);
-      
-      setError(err.message || 'Failed to fetch todos. Please try again.');
+      console.error("Error fetching todos:", err);
+
+      setError(err.message || "Failed to fetch todos. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -106,7 +101,7 @@ export default function Home() {
 
   useEffect(() => {
     checkServerHealth();
-  }, []); 
+  }, []);
 
   useEffect(() => {
     // Only fetch todos if server is online and initial health check is done
@@ -127,17 +122,17 @@ export default function Home() {
       const newTodo = await todoApi.createTodo(formData);
       await fetchTodos();
       setShowCreateForm(false);
-      
+
       toast.success(`Todo "${newTodo.title}" created successfully`, {
         duration: 3000,
       });
     } catch (err: any) {
-      console.error('Error creating todo:', err);
-      toast.error('Failed to create todo', { 
+      console.error("Error creating todo:", err);
+      toast.error("Failed to create todo", {
         duration: 3000,
-        description: err.response?.data?.error || err.message 
+        description: err.response?.data?.error || err.message,
       });
-      throw new Error(err.response?.data?.error || 'Failed to create todo');
+      throw new Error(err.response?.data?.error || "Failed to create todo");
     } finally {
       setIsCreating(false);
     }
@@ -146,47 +141,52 @@ export default function Home() {
   const handleUpdateTodo = async (id: string, updates: Partial<Todo>) => {
     try {
       const updatedTodo = await todoApi.updateTodo(id, updates);
-      await fetchTodos(); 
-      
-      if ('completed' in updates) {
-        const status = updates.completed ? 'completed' : 'reopened';
+      await fetchTodos();
+
+      if ("completed" in updates) {
+        const status = updates.completed ? "completed" : "reopened";
         toast.success(`Todo marked as ${status}`, { duration: 3000 });
       } else {
-        toast.success(`Todo "${updatedTodo.title}" updated`, { duration: 3000 });
+        toast.success(`Todo "${updatedTodo.title}" updated`, {
+          duration: 3000,
+        });
       }
     } catch (err: any) {
-      console.error('Error updating todo:', err);
-      toast.error('Failed to update todo', { 
+      console.error("Error updating todo:", err);
+      toast.error("Failed to update todo", {
         duration: 1000,
-        description: err.response?.data?.error || err.message 
+        description: err.response?.data?.error || err.message,
       });
-      throw new Error(err.response?.data?.error || 'Failed to update todo');
+      throw new Error(err.response?.data?.error || "Failed to update todo");
     }
   };
 
   const handleDeleteTodo = async (id: string) => {
     try {
-      const todoToDelete = todos?.todos.find(t => t._id === id);
-      
+      const todoToDelete = todos?.todos.find((t) => t._id === id);
+
       await todoApi.deleteTodo(id);
       await fetchTodos();
-      
-      toast.success(`Todo ${todoToDelete?.title ? `"${todoToDelete.title}"` : ''} deleted`, {
-        duration: 1000
-      });
+
+      toast.success(
+        `Todo ${todoToDelete?.title ? `"${todoToDelete.title}"` : ""} deleted`,
+        {
+          duration: 1000,
+        }
+      );
     } catch (err: any) {
-      console.error('Error deleting todo:', err);
-      toast.error('Failed to delete todo', { 
+      console.error("Error deleting todo:", err);
+      toast.error("Failed to delete todo", {
         duration: 3000,
-        description: err.response?.data?.error || err.message 
+        description: err.response?.data?.error || err.message,
       });
-      throw new Error(err.response?.data?.error || 'Failed to delete todo');
+      throw new Error(err.response?.data?.error || "Failed to delete todo");
     }
   };
 
   const handleClearFilters = () => {
-    setSearch('');
-    setStatus('all');
+    setSearch("");
+    setStatus("all");
     setCurrentPage(1);
   };
 
@@ -204,26 +204,35 @@ export default function Home() {
             <div className="p-3 bg-blue-600 rounded-xl shadow-lg">
               <CheckSquare className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-4xl font-bold text-gray-900">
-              Todo Manager
-            </h1>
+            <h1 className="text-4xl font-bold text-gray-900">Todo Manager</h1>
           </div>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
-            Organize your tasks efficiently with our comprehensive todo management system
+            Organize your tasks efficiently with our comprehensive todo
+            management system
           </p>
-          
+
           {/* Server Status */}
           <div className="flex items-center justify-center gap-2 mt-4">
             {!hasInitialHealthCheck ? (
               <>
                 <div className="w-2 h-2 rounded-full bg-gray-400 animate-pulse"></div>
-                <span className="text-sm text-gray-500">Checking server status...</span>
+                <span className="text-sm text-gray-500">
+                  Checking server status...
+                </span>
               </>
             ) : (
               <>
-                <div className={`w-2 h-2 rounded-full ${isServerOnline ? 'bg-green-500' : 'bg-red-500'}`}></div>
-                <span className={`text-sm ${isServerOnline ? 'text-green-600' : 'text-red-600'}`}>
-                  Server {isServerOnline ? 'Online' : 'Offline'}
+                <div
+                  className={`w-2 h-2 rounded-full ${
+                    isServerOnline ? "bg-green-500" : "bg-red-500"
+                  }`}
+                ></div>
+                <span
+                  className={`text-sm ${
+                    isServerOnline ? "text-green-600" : "text-red-600"
+                  }`}
+                >
+                  Server {isServerOnline ? "Online" : "Offline"}
                 </span>
               </>
             )}
@@ -234,7 +243,9 @@ export default function Home() {
               className="p-1 h-auto"
               disabled={isCheckingHealth}
             >
-              <RefreshCw className={`w-3 h-3 ${isCheckingHealth ? 'animate-spin' : ''}`} />
+              <RefreshCw
+                className={`w-3 h-3 ${isCheckingHealth ? "animate-spin" : ""}`}
+              />
             </Button>
           </div>
         </div>
@@ -247,7 +258,26 @@ export default function Home() {
               <div className="space-y-2">
                 <p className="font-medium">Backend server is not running!</p>
                 <p className="text-sm">
-                  To start the server, run: <code className="bg-red-100 px-2 py-1 rounded">npm run server</code> or <code className="bg-red-100 px-2 py-1 rounded">npm run dev:full</code> to run both frontend and backend.
+                  To start the server, run:{" "}
+                  <code className="bg-red-100 px-2 py-1 rounded font-bold">
+                    npm run server
+                  </code>{" "}
+                  or{" "}
+                  <code className="bg-red-100 px-2 py-1 rounded font-bold">
+                    npm run dev:full
+                  </code>{" "}
+                  to run both frontend and backend.
+                </p>
+                <p>
+                  <code className="bg-red-100 px-2 py-1 rounded font-bold ">.env setup - for development, DO NOT show in real production</code>
+                  <br />
+                  MONGODB_URI=mongodb+srv://quanghuy00433:jvpzo29TcVy55bQP@todolist.t3rzjd3.mongodb.net/todos_db
+                  <br />
+                  # Server Configuration 
+                  <br />
+                   PORT=5000 
+                   <br />
+                   NODE_ENV=production
                 </p>
               </div>
             </AlertDescription>

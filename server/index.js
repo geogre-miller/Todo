@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 5000;
 app.use(cors({
   origin: [
     'http://localhost:3000',
-    'https://todo-ashy-chi.vercel.app',
+    // 'https://todo-ashy-chi.vercel.app',
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
@@ -39,7 +39,6 @@ const connectDB = async () => {
   }
 };
 
-// Connect to MongoDB
 connectDB();
 
 // Routes
@@ -90,8 +89,8 @@ app.use((req, res) => {
 // Start server
 app.listen(PORT, () => {
   console.log(`🚀 Express Server running on http://localhost:${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
-  console.log(`📝 Todos API: http://localhost:${PORT}/api/todos`);
+  // console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
+  // console.log(`📝 Todos API: http://localhost:${PORT}/api/todos`);
 });
 
 module.exports = app;
