@@ -19,7 +19,7 @@ import {
 import { Todo, TodoResponse, TodoFormData, FilterStatus } from '@/types/todo';
 
 export default function Home() {
-  // Data state
+
   const [todos, setTodos] = useState<TodoResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -27,13 +27,11 @@ export default function Home() {
   const [isCheckingHealth, setIsCheckingHealth] = useState(false);
   const [hasInitialHealthCheck, setHasInitialHealthCheck] = useState(false);
 
-  // Filter and pagination state
   const [search, setSearch] = useState('');
   const [status, setStatus] = useState<FilterStatus>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
 
-  // UI state
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
 
@@ -43,12 +41,16 @@ export default function Home() {
     
     setIsCheckingHealth(true);
     try {
-      const response = await fetch('http://localhost:5000/health', {
+      const healthUrl = process.env.NODE_ENV === 'production'
+        ? `${process.env.NEXT_PUBLIC_API_URL}/health` || 'https://your-railway-app.railway.app/api/health'
+        : 'http://localhost:5000/api/health';
+        
+      const response = await fetch(healthUrl, {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
-        signal: AbortSignal.timeout(5000), // 5 second timeout
+        signal: AbortSignal.timeout(10000), 
       });
       
       if (response.ok) {
@@ -64,7 +66,7 @@ export default function Home() {
       console.error('Server health check failed:', err);
       setIsServerOnline(false);
       if (!error || !error.includes('fetch')) {
-        setError('Cannot connect to server. Please make sure the backend is running on port 5000.');
+        setError('Cannot connect to server. Please check your connection.');
       }
     } finally {
       setIsCheckingHealth(false);
@@ -74,7 +76,7 @@ export default function Home() {
     }
   }, [isCheckingHealth, error, hasInitialHealthCheck]);
 
-  // Manual refresh server health (for the refresh button)
+  // Refresh button
   const handleRefreshServerHealth = useCallback(async () => {
     await checkServerHealth();
   }, [checkServerHealth]);
@@ -123,10 +125,9 @@ export default function Home() {
     setIsCreating(true);
     try {
       const newTodo = await todoApi.createTodo(formData);
-      await fetchTodos(); // Refresh the list
+      await fetchTodos();
       setShowCreateForm(false);
       
-      // Show success toast
       toast.success(`Todo "${newTodo.title}" created successfully`, {
         duration: 3000,
       });
@@ -145,9 +146,8 @@ export default function Home() {
   const handleUpdateTodo = async (id: string, updates: Partial<Todo>) => {
     try {
       const updatedTodo = await todoApi.updateTodo(id, updates);
-      await fetchTodos(); // Refresh the list
+      await fetchTodos(); 
       
-      // Show success toast with different messages based on update type
       if ('completed' in updates) {
         const status = updates.completed ? 'completed' : 'reopened';
         toast.success(`Todo marked as ${status}`, { duration: 3000 });
@@ -166,7 +166,6 @@ export default function Home() {
 
   const handleDeleteTodo = async (id: string) => {
     try {
-      // Get todo info before deleting for the toast message
       const todoToDelete = todos?.todos.find(t => t._id === id);
       
       await todoApi.deleteTodo(id);

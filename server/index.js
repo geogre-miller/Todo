@@ -1,71 +1,98 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
+const dotenv = require('dotenv');
+
+// Load environment variables
+dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
 // Middleware
-app.use(cors());
-app.use(express.json({ limit: '10mb' }));
+app.use(cors({
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001', 
+    'https://todo-ashy-chi.vercel.app'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
+
+app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Request logging middleware
-app.use((req, res, next) => {
-  console.log(`${req.method} ${req.path} - ${new Date().toISOString()}`);
-  next();
-});
+// MongoDB Connection
+const connectDB = async () => {
+  try {
+    const mongoURI = process.env.MONGODB_URI || 'mongodb+srv://quanghuy00433:jvpzo29TcVy55bQP@todolist.t3rzjd3.mongodb.net/todos_db';
+    
+    await mongoose.connect(mongoURI, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+    });
+    
+    console.log('✅ MongoDB Connected Successfully');
+  } catch (error) {
+    console.error('❌ MongoDB Connection Error:', error.message);
+    process.exit(1);
+  }
+};
 
-// MongoDB connection with database name
-const MONGODB_URI = process.env.MONGODB_URI || 'mongodb+srv://quanghuy00433:jvpzo29TcVy55bQP@todolist.t3rzjd3.mongodb.net/todos_db';
+// Connect to MongoDB
+connectDB();
 
-mongoose.connect(MONGODB_URI, {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-  dbName: 'todos_db' 
+// Routes
+const todosRouter = require('./routes/todos');
+app.use('/api/todos', todosRouter);
 
-})
-.then(() => {
-  console.log('✓ Connected to MongoDB');
-  console.log(`Database: ${mongoose.connection.name}`);
-})
-.catch(err => console.error('MongoDB connection error:', err));
-
-// Health check endpoint (test this first)
-app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'OK', 
+// Health check endpoint
+app.get('/api/health', (req, res) => {
+  res.json({
+    status: 'OK',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
-    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    environment: process.env.NODE_ENV || 'development'
   });
 });
 
-// Try to load routes with error handling
-try {
-  console.log('Loading todos routes...');
-  const todosRouter = require('./routes/todos');
-  app.use('/api/todos', todosRouter);
-  console.log('✓ Todos routes loaded successfully');
-} catch (error) {
-  console.error('❌ Error loading todos routes:', error.message);
-  console.error('Stack trace:', error.stack);
-}
-
-// Handle 404
-app.use('/{*any}', (req, res) => {
-  res.status(404).json({ error: 'Route not found' });
+// Root endpoint
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Todo API Server is running!',
+    version: '1.0.0',
+    endpoints: {
+      health: '/api/health',
+      todos: '/api/todos'
+    }
+  });
 });
 
-// Global error handler
-app.use((error, req, res, next) => {
-  console.error('Unhandled error:', error);
-  res.status(500).json({ error: 'Internal server error' });
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error('Server Error:', err.stack);
+  res.status(500).json({ 
+    error: 'Something went wrong!',
+    message: process.env.NODE_ENV === 'development' ? err.message : 'Internal server error'
+  });
 });
 
+// 404 handler
+app.use((req, res) => {
+  res.status(404).json({ 
+    error: 'Route not found',
+    path: req.originalUrl,
+    method: req.method
+  });
+});
+
+// Start server
 app.listen(PORT, () => {
-  console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`📊 Health check: http://localhost:${PORT}/health`);
+  console.log(`🚀 Express Server running on http://localhost:${PORT}`);
+  console.log(`📊 Health check: http://localhost:${PORT}/api/health`);
   console.log(`📝 Todos API: http://localhost:${PORT}/api/todos`);
 });
+
+module.exports = app;
