@@ -19,10 +19,8 @@ npm install
 ### 3. Environment Configuration
 Create a `.env.local` file in the root directory with the following content:
 ```bash
-# MongoDB Configuration
-MONGODB_URI=mongodb://localhost:27017/todoapp
-# Or for MongoDB Atlas:
-# MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/todoapp
+# MongoDB Atlas:
+# MONGODB_URI=mongodb+srv://quanghuy00433:jvpzo29TcVy55bQP@todolist.t3rzjd3.mongodb.net/todos_db
 
 # Server Configuration
 PORT=5000
